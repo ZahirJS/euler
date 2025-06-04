@@ -247,6 +247,11 @@ class EulerMCPInterface:
             nodes = graph_data['nodes']
             edges = graph_data['edges']
             
+            # DEBUG: Agregar esto
+            print(f"DEBUG: Found {len(nodes)} nodes and {len(edges)} edges")
+            if nodes:
+                print(f"DEBUG: Sample node: {nodes[0]}")
+
             if not nodes:
                 return "<div style='text-align: center; padding: 50px;'>No topics in graph yet. Analyze some conversations first!</div>"
             
@@ -261,6 +266,8 @@ class EulerMCPInterface:
             for edge in edges:
                 G.add_edge(edge['source'], edge['target'], **edge)
             
+            print(f"DEBUG: NetworkX graph created with {len(G.nodes)} nodes, {len(G.edges)} edges")
+
             # Calculate layout
             try:
                 pos = nx.spring_layout(G, k=3, iterations=50)
@@ -310,7 +317,9 @@ class EulerMCPInterface:
                 x, y = pos[node['id']]
                 node_x.append(x)
                 node_y.append(y)
-                node_text.append(node['name'])
+
+                safe_name = self._safe_string(node['name'])
+                node_text.append(safe_name)
                 
                 # Use status color with category as fallback
                 color = status_colors.get(node['status'], 
@@ -322,12 +331,12 @@ class EulerMCPInterface:
                 node_size.append(size)
                 
                 # Hover info
-                info = f"<b>{node['name']}</b><br>"
-                info += f"Category: {node['category']}<br>"
-                info += f"Status: {node['status']}<br>"
+                info = f"<b>{self._safe_string(safe_name)}</b><br>"
+                info += f"Category: {self._safe_string(node['category'])}<br>"
+                info += f"Status: {self._safe_string(node['status'])}<br>"
                 info += f"Confidence: {node['confidence']:.2f}<br>"
                 info += f"Times mentioned: {node.get('times_mentioned', 1)}<br>"
-                info += f"Last discussed: {node.get('last_discussed', 'Never')[:10]}"
+                info += f"Last discussed: {self._safe_string(str(node.get('last_discussed', 'Never'))[:10])}"
                 node_info.append(info)
             
             # Create node trace
@@ -349,37 +358,66 @@ class EulerMCPInterface:
             
             # Create figure
             fig = go.Figure(data=[edge_trace, node_trace],
-                          layout=go.Layout(
-                              title=dict(
-                                  text='🧠 EulerMCP Learning Knowledge Graph',
-                                  x=0.5,
-                                  font=dict(size=20)
-                              ),
-                              titlefont_size=16,
-                              showlegend=False,
-                              hovermode='closest',
-                              margin=dict(b=20,l=5,r=5,t=40),
-                              annotations=[ dict(
-                                  text="Node size = confidence × mentions | Colors = learning status",
-                                  showarrow=False,
-                                  xref="paper", yref="paper",
-                                  x=0.005, y=-0.002,
-                                  xanchor='left', yanchor='bottom',
-                                  font=dict(color="gray", size=12)
-                              )],
-                              xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                              yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                              plot_bgcolor='rgba(0,0,0,0)',
-                              paper_bgcolor='rgba(0,0,0,0)'
-                          ))
+                    layout=go.Layout(
+                        title=dict(
+                            text='EulerMCP Learning Knowledge Graph',  # ← SIN EMOJI
+                            x=0.5,
+                            font=dict(size=20)
+                        ),
+                        showlegend=False,
+                        hovermode='closest',
+                        margin=dict(b=20,l=5,r=5,t=40),
+                        annotations=[ dict(
+                            text="Node size = confidence × mentions | Colors = learning status",
+                            showarrow=False,
+                            xref="paper", yref="paper",
+                            x=0.005, y=-0.002,
+                            xanchor='left', yanchor='bottom',
+                            font=dict(color="gray", size=12)
+                        )],
+                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)'
+                    ))
             
             # Convert to HTML
-            return fig.to_html(include_plotlyjs='cdn', div_id="knowledge-graph")
+            html_result = fig.to_html(include_plotlyjs='cdn', div_id="knowledge-graph")
+            print(f"DEBUG: Generated HTML length: {len(html_result)}")
+
+            # AGREGAR ESTE DEBUG ESPECÍFICO:
+            print("DEBUG: HTML contains plotly:", "plotly" in html_result.lower())
+            print("DEBUG: HTML contains data:", "data" in html_result.lower())
+            print("DEBUG: HTML contains nodes:", len([line for line in html_result.split('\n') if 'node' in line.lower()]))
+            print("DEBUG: HTML first 500 chars:", html_result[:500])
+            print("DEBUG: Node positions sample:", list(pos.items())[:3] if pos else "No positions")
+            print("DEBUG: Node data sample:", node_x[:5], node_y[:5], node_text[:3])
+            print(f"DEBUG: Node positions range - X: {min(node_x) if node_x else 'none'} to {max(node_x) if node_x else 'none'}")
+            print(f"DEBUG: Node positions range - Y: {min(node_y) if node_y else 'none'} to {max(node_y) if node_y else 'none'}")
+            print(f"DEBUG: Node sizes: {node_size[:5]}")
+            print(f"DEBUG: Node colors: {node_color[:3]}")
+            return html_result
+            
             
         except Exception as e:
             self.logger.error(f"Error creating graph visualization: {e}")
             return f"<div style='color: red;'>Error creating visualization: {str(e)}</div>"
     
+    def _safe_string(self, value) -> str:
+        """Safely convert any value to string for display."""
+        if value is None:
+            return ""
+        elif isinstance(value, bytes):
+            try:
+                return value.decode('utf-8')
+            except UnicodeDecodeError:
+                return value.decode('utf-8', errors='replace')
+        elif isinstance(value, str):
+            # Remove any problematic characters that could cause formatting issues
+            return value.encode('ascii', errors='ignore').decode('ascii') if len(value) > 100 else value
+        else:
+            return str(value)
+
     def get_analytics_data(self) -> Tuple[str, str]:
         """Get learning analytics and create charts."""
         try:
@@ -592,9 +630,9 @@ def create_gradio_interface():
                 )
                 
                 refresh_graph_btn.click(
-                    interface._create_graph_visualization,
-                    outputs=[graph_html]
-                )
+                lambda: interface._create_graph_visualization(),
+                outputs=[graph_html]
+)
             
             # Tab 3: Learning Analytics
             with gr.Tab("📊 Analytics"):

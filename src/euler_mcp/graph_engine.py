@@ -95,6 +95,20 @@ class LearningGraph:
                 CREATE INDEX IF NOT EXISTS idx_relationships_target ON topic_relationships(target_topic_id);
             """)
     
+    def _ensure_string(self, value, default=""):
+        """Ensure a value is a proper string."""
+        if value is None:
+            return default
+        elif isinstance(value, bytes):
+            try:
+                return value.decode('utf-8')
+            except UnicodeDecodeError:
+                return value.decode('utf-8', errors='replace')
+        elif isinstance(value, str):
+            return value
+        else:
+            return str(value)
+
     def _load_graph_from_db(self):
         """Load existing graph data from database into NetworkX."""
         try:
@@ -104,35 +118,41 @@ class LearningGraph:
                 # Load topics as nodes
                 topics = conn.execute("SELECT * FROM topics").fetchall()
                 for topic in topics:
-                    self.graph.add_node(
-                        topic['id'],
-                        name=topic['name'],
-                        category=topic['category'],
-                        confidence=topic['confidence'],
-                        depth_level=topic['depth_level'],
-                        status=topic['status'],
-                        last_discussed=topic['last_discussed'],
-                        times_mentioned=topic['times_mentioned'],
-                        learning_priority=topic['learning_priority']
-                    )
+                    # AQUÍ ESTÁ EL FIX: Asegurar que todos los strings sean strings, no bytes
+                    node_data = {
+                        'name': self._ensure_string(topic['name']),
+                        'category': self._ensure_string(topic['category']),
+                        'confidence': float(topic['confidence']) if topic['confidence'] is not None else 0.0,
+                        'depth_level': self._ensure_string(topic['depth_level']),
+                        'status': self._ensure_string(topic['status']),
+                        'last_discussed': self._ensure_string(topic['last_discussed']),
+                        'times_mentioned': int(topic['times_mentioned']) if topic['times_mentioned'] is not None else 1,
+                        'learning_priority': float(topic['learning_priority']) if topic['learning_priority'] is not None else 0.5
+                    }
+                    
+                    self.graph.add_node(topic['id'], **node_data)
                 
-                # Load relationships as edges
+                # Load relationships as edges  
                 relationships = conn.execute("""
                     SELECT r.*, 
-                           s.name as source_name, 
-                           t.name as target_name
+                        s.name as source_name, 
+                        t.name as target_name
                     FROM topic_relationships r
                     JOIN topics s ON r.source_topic_id = s.id
                     JOIN topics t ON r.target_topic_id = t.id
                 """).fetchall()
                 
                 for rel in relationships:
+                    edge_data = {
+                        'relationship_type': self._ensure_string(rel['relationship_type']),
+                        'weight': float(rel['weight']) if rel['weight'] is not None else 0.5,
+                        'confidence': float(rel['confidence']) if rel['confidence'] is not None else 0.5
+                    }
+                    
                     self.graph.add_edge(
                         rel['source_topic_id'],
                         rel['target_topic_id'],
-                        relationship_type=rel['relationship_type'],
-                        weight=rel['weight'],
-                        confidence=rel['confidence']
+                        **edge_data
                     )
                     
                 self.logger.info(f"Loaded graph with {len(self.graph.nodes)} nodes and {len(self.graph.edges)} edges")
@@ -431,28 +451,28 @@ class LearningGraph:
             nodes = []
             edges = []
             
-            # Export nodes
+            # Export nodes with string safety
             for node_id, node_data in self.graph.nodes(data=True):
                 nodes.append({
-                    'id': node_id,
-                    'name': node_data.get('name', 'Unknown'),
-                    'category': node_data.get('category', 'general'),
-                    'confidence': node_data.get('confidence', 0.5),
-                    'status': node_data.get('status', 'mentioned'),
-                    'depth_level': node_data.get('depth_level', 'shallow'),
-                    'times_mentioned': node_data.get('times_mentioned', 1),
-                    'last_discussed': node_data.get('last_discussed', ''),
-                    'learning_priority': node_data.get('learning_priority', 0.5)
+                    'id': int(node_id),
+                    'name': self._ensure_string(node_data.get('name', 'Unknown')),
+                    'category': self._ensure_string(node_data.get('category', 'general')),
+                    'confidence': float(node_data.get('confidence', 0.5)),
+                    'status': self._ensure_string(node_data.get('status', 'mentioned')),
+                    'depth_level': self._ensure_string(node_data.get('depth_level', 'shallow')),
+                    'times_mentioned': int(node_data.get('times_mentioned', 1)),
+                    'last_discussed': self._ensure_string(node_data.get('last_discussed', '')),
+                    'learning_priority': float(node_data.get('learning_priority', 0.5))
                 })
             
-            # Export edges
+            # Export edges with string safety
             for source, target, edge_data in self.graph.edges(data=True):
                 edges.append({
-                    'source': source,
-                    'target': target,
-                    'relationship_type': edge_data.get('relationship_type', 'related'),
-                    'weight': edge_data.get('weight', 0.5),
-                    'confidence': edge_data.get('confidence', 0.5)
+                    'source': int(source),
+                    'target': int(target),
+                    'relationship_type': self._ensure_string(edge_data.get('relationship_type', 'related')),
+                    'weight': float(edge_data.get('weight', 0.5)),
+                    'confidence': float(edge_data.get('confidence', 0.5))
                 })
             
             return {

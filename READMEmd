@@ -1,60 +1,47 @@
-# EulerMCP
+---
+title: EulerMCP - Learning Knowledge Graph
+emoji: 🧠
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 4.0.0
+app_file: app.py
+pinned: false
+license: mit
+---
 
-MCP Server que crea mapas de conocimiento interactivos basados en conversaciones de aprendizaje con Claude Desktop.
+# 🧠 EulerMCP - Learning Knowledge Graph
 
-## Características
+Transform your learning conversations into interactive knowledge maps! EulerMCP uses advanced NLP to extract topics, build knowledge graphs, and provide personalized learning suggestions.
 
-- 🧠 Extracción automática de temas de conversaciones
-- 🕸️ Grafo interactivo de conocimiento
-- 📊 Sugerencias de próximos temas a aprender
-- 🎯 Detección automática de gaps de conocimiento
-- 📈 Analytics de progreso de aprendizaje
+## ✨ Features
 
-## Instalación
+- **🔍 Smart Analysis**: Extract topics and relationships from learning conversations
+- **🕸️ Knowledge Graphs**: Visualize your learning as an interactive network
+- **💡 Personalized Suggestions**: Get AI-powered recommendations for what to learn next
+- **📊 Progress Tracking**: Monitor your learning journey with detailed analytics
+- **🎯 Topic Management**: Organize and track your knowledge across different domains
 
-```bash
-pip install -e ".[dev]"
-python -m spacy download en_core_web_sm
-```
+## 🚀 How to Use
 
-## Uso
+1. **Analyze Conversations**: Paste your learning conversations in the first tab
+2. **Explore the Graph**: View your knowledge network in the second tab  
+3. **Track Progress**: Check analytics to see your learning patterns
+4. **Manage Topics**: Update topic status and search your knowledge base
 
-### Ejecutar MCP Server
-```bash
-euler-mcp-server
-```
+## 🛠️ Technical Stack
 
-### Ejecutar Interfaz Gradio
-```bash
-euler-mcp-gradio
-```
+- **NLP Engine**: spaCy + sentence-transformers for topic extraction
+- **Graph Engine**: NetworkX for relationship analysis
+- **Visualization**: Plotly for interactive graphs
+- **Database**: SQLite for persistent storage
+- **Interface**: Gradio for web-based interaction
 
-## Configuración Claude Desktop
+## 💡 Demo Tips
 
-Agregar al archivo `claude_desktop_config.json`:
+Try pasting a conversation like:
+*"I'm learning TypeScript and I'm confused about interfaces vs types. Can you explain generics and how they work with React components?"*
 
-```json
-{
-  "mcpServers": {
-    "euler-mcp": {
-      "command": "euler-mcp-server",
-      "args": [],
-      "env": {}
-    }
-  }
-}
-```
+---
 
-## Desarrollo
-
-```bash
-# Tests
-pytest
-
-# Formateo
-black src/
-isort src/
-
-# Type checking
-mypy src/
-```
+**Built for Gradio Agents & MCP Hackathon 2025 with ❤️**
