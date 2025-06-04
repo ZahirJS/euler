@@ -1,0 +1,75 @@
+Componentes Principales
+1. MCP Server (server.py)
+
+# Tools que expone:
+- analyze_conversation()     # Extrae temas de la conversación
+- get_learning_graph()       # Retorna grafo actual  
+- suggest_next_topics()      # Sugiere qué aprender
+- add_topic_to_graph()       # Agrega tema manualmente
+- export_learning_path()     # Exporta roadmap
+
+2. Procesador de Conversaciones (conversation_processor.py)
+Este es el cerebro de NLP que extraera los temas y relaciones de las conversaciones
+
+# Funciones:
+- extract_topics()           # NLP para detectar temas
+- identify_relationships()   # Encuentra conexiones entre temas
+- classify_depth()          # Superficial vs profundo
+- detect_gaps()             # Identifica qué falta
+
+3. Motor de Grafos (graph_engine.py)
+
+# Maneja:
+- NetworkX graph structure
+- Node types (learned, mentioned, suggested)
+- Edge weights (relationship strength)
+- Graph traversal algorithms
+
+4. Interfaz Gradio (gradio_app.py)
+
+# Tabs:
+- Knowledge Graph Viewer    # Visualización interactiva
+- Learning Analytics       # Métricas y progreso
+- Topic Explorer          # Búsqueda y detalles
+- Settings               # Configuración
+
+-----------------------------------------
+
+Stack Tecnológico
+Core:
+
+mcp - MCP SDK
+gradio - Interface web
+networkx - Manejo de grafos
+plotly - Visualización interactiva
+
+NLP:
+
+spacy - Extracción de entidades
+sentence-transformers - Embeddings semánticos
+sklearn - Clustering de temas
+
+Datos:
+
+sqlite3 - Base de datos local
+pandas - Manipulación de datos
+
+--------------------------------------------
+
+# Nodo del grafo
+{
+    "id": "typescript",
+    "label": "TypeScript",
+    "type": "learned|mentioned|suggested",
+    "depth": "shallow|medium|deep",
+    "last_discussed": datetime,
+    "confidence": 0.8
+}
+
+# Arista del grafo  
+{
+    "source": "javascript",
+    "target": "typescript", 
+    "weight": 0.9,
+    "relationship": "prerequisite|related|extension"
+}

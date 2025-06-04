@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: euler-mcp
+Version: 0.1.0
+Summary: MCP Server for creating interactive learning knowledge graphs
+Author-email: ZahirJS <andywork000@gmail.com>
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: mcp>=1.0.0
+Requires-Dist: gradio>=4.0.0
+Requires-Dist: networkx>=3.0
+Requires-Dist: plotly>=5.0.0
+Requires-Dist: spacy>=3.7.0
+Requires-Dist: sentence-transformers>=2.2.0
+Requires-Dist: scikit-learn>=1.3.0
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: asyncio-mqtt>=0.16.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: typing-extensions>=4.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"

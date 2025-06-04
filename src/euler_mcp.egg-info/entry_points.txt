@@ -1,0 +1,3 @@
+[console_scripts]
+euler-mcp-gradio = euler_mcp.gradio_app:main
+euler-mcp-server = euler_mcp.server:main

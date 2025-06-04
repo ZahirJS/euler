@@ -1,0 +1,60 @@
+# EulerMCP
+
+MCP Server que crea mapas de conocimiento interactivos basados en conversaciones de aprendizaje con Claude Desktop.
+
+## Características
+
+- 🧠 Extracción automática de temas de conversaciones
+- 🕸️ Grafo interactivo de conocimiento
+- 📊 Sugerencias de próximos temas a aprender
+- 🎯 Detección automática de gaps de conocimiento
+- 📈 Analytics de progreso de aprendizaje
+
+## Instalación
+
+```bash
+pip install -e ".[dev]"
+python -m spacy download en_core_web_sm
+```
+
+## Uso
+
+### Ejecutar MCP Server
+```bash
+euler-mcp-server
+```
+
+### Ejecutar Interfaz Gradio
+```bash
+euler-mcp-gradio
+```
+
+## Configuración Claude Desktop
+
+Agregar al archivo `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "euler-mcp": {
+      "command": "euler-mcp-server",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+## Desarrollo
+
+```bash
+# Tests
+pytest
+
+# Formateo
+black src/
+isort src/
+
+# Type checking
+mypy src/
+```
